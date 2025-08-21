@@ -1,7 +1,7 @@
 import enum
 
-from database import Base
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, Enum
+from src.database import Base
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, Enum
 
 class DocType(enum.Enum):
     CPF = 'CPF'
