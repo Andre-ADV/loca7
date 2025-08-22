@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from db.database import Base
+from src.db.database import Base
 from src.users.models import Users
 
 from sqlalchemy import pool
@@ -49,6 +49,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
+        compare_server_default=True,
     )
 
     with context.begin_transaction():

@@ -6,31 +6,31 @@ class DocType(Enum):
     CPF = 'CPF'
     CNPJ = 'CNPJ'
 
+class User(BaseModel):
+    id_: int
+    name: str
+    email: EmailStr
+    document: str
+
+    class Config:
+        from_attributes = True
+
 class CreateUser(BaseModel):
     name: str
     email: EmailStr
     password: str 
     document: str
-    doc_type:  DocType = DocType.CPF
+    doc_type: DocType
+
+    class Config:
+        use_enum_values = True
 
 class UpdateUser(BaseModel):
-    id_: int
     name: Optional[str]
     email: Optional[EmailStr]
     password: Optional[str]
 
-class ReadUser(BaseModel):
-    id_: int
-
 class DeleteUser(BaseModel):
     id_: int
 
-class User(BaseModel):
-    id_: int
-    name: str
-    email: str
-    document: str
-
-    class Config:
-        from_attributes = True
 
