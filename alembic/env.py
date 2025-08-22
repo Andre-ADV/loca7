@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from src.database import Base
+from db.database import Base
 from src.users.models import Users
 
 from sqlalchemy import pool

@@ -1,7 +1,7 @@
 from src.auth.router import auth_router
 from src.users.router import users_router
 
-from src.database import get_db
+from src.db.database import get_db
 from typing import Annotated, AsyncGenerator
 
 from fastapi import FastAPI, Depends

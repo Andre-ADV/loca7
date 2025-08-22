@@ -7,16 +7,13 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 # Binding engine to session
-SessionLocal = async_sessionmaker(engine)
+SessionLocal = async_sessionmaker(bind=engine)
 
 # Models Base
 Base = declarative_base()
 
 # Create tables and get session
 async def get_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    
     db = SessionLocal()
     try:
         yield db

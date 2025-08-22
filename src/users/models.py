@@ -1,7 +1,7 @@
 import enum
 
-from src.database import Base
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, Enum
+from db.database import Base
+from sqlalchemy import Column, Float, Integer, String, Boolean, DateTime, func, Enum
 
 class DocType(enum.Enum):
     CPF = 'CPF'
@@ -22,6 +22,7 @@ class Users(Base):
     doc_type   = Column(Enum(DocType), nullable=False)
     is_active  = Column(Boolean,       nullable=False)
     role       = Column(Enum(Role),    nullable=False, default=Role.USER)
+    balance    = Column(Float,         nullable=False)
     created_at = Column(DateTime,      nullable=False, server_default=func.now())
     updated_at = Column(DateTime,      nullable=False, server_default=func.now(), onupdate=func.now())
 
