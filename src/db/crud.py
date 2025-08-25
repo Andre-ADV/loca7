@@ -13,8 +13,8 @@ class CRUD(Generic[Model]):
         result = await db.execute(select(self.model))
         return result.scalars().all()
     
-    async def get_by_id(self, user_id: int, db: AsyncSession) -> Optional[Model]:
-        return await db.get(self.model, user_id)
+    async def get_by_id(self, id: int, db: AsyncSession) -> Optional[Model]:
+        return await db.get(self.model, id)
     
     async def create(self, data: dict, db: AsyncSession) -> Model | None:
         try:

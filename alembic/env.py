@@ -3,6 +3,7 @@ from logging.config import fileConfig
 
 from src.db.database import Base
 from src.users.models import Users
+from src.individual.models import Individual, IndividualBeneficio, IndividualClt, IndividualSiape
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection

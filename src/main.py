@@ -1,5 +1,6 @@
 from src.auth.router import auth_router
 from src.users.router import users_router
+from src.individual.router import individual_router
 
 from src.db.database import get_db
 from typing import Annotated, AsyncGenerator
@@ -15,3 +16,4 @@ async def main(db: Annotated[AsyncGenerator, Depends(get_db)]) -> None:
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(individual_router)
