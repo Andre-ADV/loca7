@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from src.db.database import Base
+from src.database.database import Base
 from src.individual.enums import SexoType, EstadoCivilType, SituacaoCadastralType
 
 from sqlalchemy import Float, Integer, String, Boolean, DateTime, Numeric, func, Enum, text, ForeignKey
