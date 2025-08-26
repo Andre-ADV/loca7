@@ -1,13 +1,12 @@
-from fastapi import HTTPException
-from src.auth.schemas import  TokenScheme, UserAuthScheme
-
+from fastapi import HTTPException, status
 from typing import Annotated
-from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.auth.jwt_bearer import JWTBearer
 
-from src.users.services import UsersService
-from src.auth.auth_handler import generate_token, token_response
+from ..users.services import UsersService
+
+from .auth_handler import generate_token, token_response
+from .jwt_bearer import JWTBearer
+from .schemas import  TokenScheme, UserAuthScheme
 
 user_service = UsersService()
 
@@ -24,3 +23,4 @@ async def authenticate(userAuth: UserAuthScheme, db: AsyncSession):
         return token_response(token)
     
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas")
+

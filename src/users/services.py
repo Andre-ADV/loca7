@@ -1,11 +1,10 @@
 from fastapi import HTTPException, Response, status
-from src.database.crud import CRUD
-
-from src.users.models import Users
-from src.users.schemas import DeleteUser, User
-
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..database.crud import CRUD
+from ..users.models import Users
+from ..users.schemas import DeleteUser, User
 
 class UsersService(CRUD[Users]):
 

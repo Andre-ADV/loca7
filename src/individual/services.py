@@ -1,6 +1,7 @@
-from src.utils import check_if_exists
-from src.database.crud import CRUD
-from src.individual.models import Individual
+from ..database.crud import CRUD
+from ..utils import check_if_exists
+
+from .models import Individual
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

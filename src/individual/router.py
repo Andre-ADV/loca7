@@ -1,15 +1,17 @@
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends
 
-from src.database.database import get_db
-from src.individual.models import Individual
-from src.individual.services import IndividualService
-from src.individual.schemas import IndividualResponse
+from ..database.database import get_db
+from ..auth.jwt_bearer import JWTBearer
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from .services import IndividualService
+from .schemas import IndividualResponse
+from .models import Individual
 
 individual_router = APIRouter(
     tags=['individual'],
-    prefix='/individual'
+    prefix='/individual',
+    dependencies=[Depends(JWTBearer())]
 )
 
 individual_service = IndividualService()

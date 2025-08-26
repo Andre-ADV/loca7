@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from src.auth.auth_handler import decode_token, sanitize_bearer
+from .auth_handler import decode_token, sanitize_bearer
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
