@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Response, status
-from src.db.crud import CRUD
+from src.database.crud import CRUD
 
 from src.users.models import Users
 from src.users.schemas import DeleteUser, User

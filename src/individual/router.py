@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from src.db.database import get_db
+from src.database.database import get_db
 from src.individual.models import Individual
 from src.individual.services import IndividualService
 from src.individual.schemas import IndividualResponse

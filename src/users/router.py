@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from src.db.database import get_db
+from src.database.database import get_db
 
 from src.users.models import Users
 from src.users.schemas import CreateUser, DeleteUser, UpdateUser, User
