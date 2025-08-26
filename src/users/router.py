@@ -1,5 +1,7 @@
+from typing import Annotated
 from fastapi import APIRouter, Depends
 
+from src.auth.jwt_bearer import JWTBearer
 from src.database.database import get_db
 
 from src.users.models import Users
@@ -10,7 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 users_router = APIRouter(
     tags=['users'],
-    prefix='/users'
+    prefix='/users',
+    dependencies=[Depends(JWTBearer())]
 )
 
 user_service = UsersService()

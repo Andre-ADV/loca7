@@ -25,8 +25,9 @@ class UsersService(CRUD[Users]):
         return user
     
     async def get_user_by_email(self, email: str, db: AsyncSession) -> Users | None:
-        user = await db.execute(select(Users).where(Users.email == email))
-        return user.scalars().first()
+        result = await db.execute(select(Users).where(Users.email == email))
+        user = result.scalars().first() 
+        return user
 
     async def get_user_by_document(self, document: str, db: AsyncSession) -> Users | None:
         user = await db.execute(select(Users).where(Users.document == document))
