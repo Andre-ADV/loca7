@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from decimal import Decimal
-from .utils import parse_bool, parse_int_from_any, parse_decimal_currency_br, parse_date_br
+from ..utils import parse_bool, parse_int_from_any, parse_decimal_currency_br, parse_date_br
 # ↑ pode deixar as utils no mesmo arquivo se preferir, ou em utils_parse.py separado
 
 def flatten_infoqualy(resp: Dict[str, Any]) -> Dict[str, Any]:

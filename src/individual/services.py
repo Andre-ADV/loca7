@@ -8,9 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 class IndividualService(CRUD[Individual]):
 
-    def __init__(self, external_api: ExternalAPI):
+    def __init__(self):
         super().__init__(Individual)
-        self.external_api = external_api
 
     async def get_individual(self, db: AsyncSession) -> list[Individual]:
         return await self.get_all(db)
@@ -27,7 +26,8 @@ class IndividualService(CRUD[Individual]):
         if individual:
             return individual
 
-        individual = await self.external_api.get_individual(cpf, db)
+        external_api = ExternalAPI()
+        individual = await external_api.get_data_individual(cpf, db)
 
         if individual:
             return individual

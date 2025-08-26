@@ -4,6 +4,7 @@ from src.database.database import get_db
 from src.individual.models import Individual
 from src.individual.services import IndividualService
 from src.individual.schemas import IndividualResponse
+from src.individual.external_api import ExternalAPI
 
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -2,19 +2,23 @@ from __future__ import annotations
 import httpx
 import time
 
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.individual.config import BASES
-from individual.infoqualy.parser_infoqualy import flatten_infoqualy 
-from individual.infoqualy.repository import upsert_individual_from_infoqualy_async 
+from src.individual.infoqualy.parser_infoqualy import flatten_infoqualy 
+from src.individual.infoqualy.repository import upsert_individual_from_infoqualy_async 
 
 class ExternalAPI:
-    def __init__(self, base_url: str):
-        self.base_url = base_url
+    def __init__(self, base_name: str = "infoqualy", token_ttl_seconds: int = 50 * 60):
         self.bases = BASES
+        self.base_name = base_name
+        self._token_value: Optional[str] = None
+        self._token_exp: int = 0
+        self._token_ttl = token_ttl_seconds
 
     async def get_token(self) -> str:
         """Gera token (sem cache)."""
-        cfg = self.bases[self.base_name]
+        cfg = self.bases['infoqualy']
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(
                 cfg["url_token"],
@@ -38,32 +42,20 @@ class ExternalAPI:
     def _invalidate_token(self) -> None:
         self._token_value = None
         self._token_exp = 0
-        
-    async def get_token(self):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                self.bases['infoqualy']['url_token'],
-                headers={
-                    "Authorization": f"Bearer {self.bases['infoqualy']['api_key']}"
-                }
-            )
-            response.raise_for_status()  # levanta erro se a resposta for inválida
-            data = response.json()
-            return data.get("token")
     
-    async def get_individual(self, cpf: str, db: AsyncSession) -> dict | None:
+    async def get_data_individual(self, cpf: str, db: AsyncSession) -> dict | None:
         """
         Consulta Infoqualy com CPF, faz parse e faz upsert assíncrono.
         Retorna o JSON bruto da API.
         """
-        cfg = self.bases[self.base_name]
+        cfg = self.bases['infoqualy']
         token = await self._get_token_cached()
         payload = {"doc": cpf}
 
         async with httpx.AsyncClient(timeout=60) as client:
             # 1ª tentativa
             resp = await client.post(
-                cfg["url_consulta"],
+                cfg["url_consulta_pf"],
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -76,7 +68,7 @@ class ExternalAPI:
                 self._invalidate_token()
                 token = await self._get_token_cached()
                 resp = await client.post(
-                    cfg["url_consulta"],
+                    cfg["url_consulta_pf"],
                     headers={
                         "Authorization": f"Bearer {token}",
                         "Content-Type": "application/json",
