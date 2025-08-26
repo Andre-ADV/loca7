@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends
-
-from src.database.database import get_db
-
-from src.users.models import Users
-from src.users.schemas import CreateUser, DeleteUser, UpdateUser, User
-from src.users.services import UsersService
-
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..auth.jwt_bearer import JWTBearer
+from ..database.database import get_db
+
+from .models import Users
+from .schemas import CreateUser, DeleteUser, UpdateUser, User
+from .services import UsersService
 
 users_router = APIRouter(
     tags=['users'],
-    prefix='/users'
+    prefix='/users',
+    dependencies=[Depends(JWTBearer())]
 )
 
 user_service = UsersService()

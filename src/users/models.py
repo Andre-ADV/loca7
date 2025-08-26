@@ -1,17 +1,10 @@
-import enum
-
 from datetime import datetime
-from src.database.database import Base
 from sqlalchemy import Float, Integer, String, Boolean, DateTime, func, Enum, text
 from sqlalchemy.orm import mapped_column, Mapped
 
-class DocType(enum.Enum):
-    CPF = 'CPF'
-    CNPJ = 'CNPJ'
+from ..database.database import Base
 
-class Role(enum.Enum):
-    USER = "user"
-    ADMIN = "admin"
+from .enums import DocType, Role
 
 class Users(Base):
     __tablename__ = "users"
