@@ -8,7 +8,7 @@ class EstadoCivilType(enum.Enum):
     CASADO = 'CASADO(A)'
     SOLTEIRO = 'SOLTEIRO(A)'
     VIUVO = 'VIUVO(A)'
-    DIVOCIADO = 'DIVORCIADO(A)'
+    DIVORCIADO = 'DIVORCIADO(A)'
     SEPARADO = 'SEPARADO(A)'
     UNIAO = 'UNIÃO ESTÁVEL'
     
@@ -19,3 +19,5 @@ class SituacaoCadastralType(enum.Enum):
     CANCELADA = 'CANCELADA'
     FALECIDO = 'TITULAR FALECIDO'
     NULA = 'NULA'
+    
+

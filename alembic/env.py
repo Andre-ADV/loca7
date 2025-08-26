@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from src.db.database import Base
+from src.database.database import Base
 from src.users.models import Users
 from src.individual.models import Individual, IndividualBeneficio, IndividualClt, IndividualSiape
 
