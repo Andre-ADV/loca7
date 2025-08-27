@@ -1,6 +1,9 @@
 from typing import Dict, Any
 from decimal import Decimal
 from ..utils import parse_bool, parse_int_from_any, parse_decimal_currency_br, parse_date_br
+import re
+from decimal import Decimal, InvalidOperation
+from typing import Optional, List
 
 def _norm_str(v):
     return (v or "").strip() or None
@@ -11,6 +14,29 @@ def _as_int(v):
     except Exception:
         return None
 
+
+def parse_decimal_currency_br(v) -> Optional[Decimal]:
+    """
+    Converte strings como 'R$ 2.748,00', '2.748,00', '2748,00', '0', '' em Decimal.
+    Retorna None se não der pra converter.
+    """
+    if v is None:
+        return None
+    s = str(v).strip()
+    if not s:
+        return None
+    # Remove tudo que não é dígito, ponto, vírgula, sinal
+    s = re.sub(r'[^0-9,.\-+]', '', s)
+    # Remove separador de milhar ponto e troca vírgula por ponto (padrão BR)
+    s = s.replace('.', '').replace(',', '.')
+    try:
+        return Decimal(s)
+    except InvalidOperation:
+        return None
+
+def to_float_or_none(d: Optional[Decimal]) -> Optional[float]:
+    return float(d) if d is not None else None
+   
 def flatten_infoqualy(resp: Dict[str, Any]) -> Dict[str, Any]:
     """
     Transforma o JSON da Infoqualy em um dicionário com:
@@ -74,7 +100,7 @@ def flatten_infoqualy(resp: Dict[str, Any]) -> Dict[str, Any]:
                 "beneficio_qtd": _as_int(bloco.get("Beneficio_QtdBeneficios")),
                 "beneficio_emprestimo": _norm_str(bloco.get("Beneficio_FazEmprestimo")),
                 "beneficio_renda": parse_bool(bloco.get("Beneficio_TemRenda")),
-                "beneficio_renda_total": float(Decimal(str(bloco.get("Beneficio_RendaTotal") or "0"))),
+                "beneficio_renda_total": to_float_or_none(parse_decimal_currency_br(bloco.get("Beneficio_RendaTotal"))),
                 "beneficio_renda_total_valor": parse_decimal_currency_br(bloco.get("Beneficio_RendaTotal_vlr")),
             })
 
