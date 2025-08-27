@@ -1,5 +1,5 @@
-
-
+from sqlalchemy import Float, Integer, String, Boolean, DateTime, Numeric, func, Enum, ForeignKey
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 from decimal import Decimal
 
@@ -8,8 +8,9 @@ from src.individual.enums import SexoType, EstadoCivilType, SituacaoCadastralTyp
 
 from sqlalchemy import Float, Integer, String, Boolean, DateTime, Numeric, SmallInteger, func, Enum, text, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from typing import List, Optional
+from typing import Optional
 
+from .enums import SexoType, EstadoCivilType, SituacaoCadastralType
 
 class Individual(Base):
     __tablename__ = "individual"

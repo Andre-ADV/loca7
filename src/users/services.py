@@ -1,11 +1,10 @@
 from fastapi import HTTPException, Response, status
-from src.database.crud import CRUD
-
-from src.users.models import Users
-from src.users.schemas import DeleteUser, User
-
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..database.crud import CRUD
+from ..users.models import Users
+from ..users.schemas import DeleteUser, User
 
 class UsersService(CRUD[Users]):
 
@@ -25,8 +24,9 @@ class UsersService(CRUD[Users]):
         return user
     
     async def get_user_by_email(self, email: str, db: AsyncSession) -> Users | None:
-        user = await db.execute(select(Users).where(Users.email == email))
-        return user.scalars().first()
+        result = await db.execute(select(Users).where(Users.email == email))
+        user = result.scalars().first() 
+        return user
 
     async def get_user_by_document(self, document: str, db: AsyncSession) -> Users | None:
         user = await db.execute(select(Users).where(Users.document == document))

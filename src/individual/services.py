@@ -5,8 +5,6 @@ from src.individual.external_api import ExternalAPI
 from src.individual.schemas import IndividualResponse
 from src.individual.mappers import to_response
 
-
-
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
