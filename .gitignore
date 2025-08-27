@@ -1,5 +1,27 @@
-venv
-*/__pycache__
-__pycache__/*
-*/*/__pycache__
+# Ambiente virtual
+venv/
+.venv/
+env/
+ENV/
 
+# Arquivos compilados
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+
+# Logs e caches
+*.log
+*.sqlite3
+*.db
+*.DS_Store
+
+# Arquivos temporários
+*.swp
+*.swo
+
+# Configs locais (IDE)
+.vscode/
+.idea/
