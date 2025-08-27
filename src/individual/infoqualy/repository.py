@@ -1,25 +1,50 @@
 from typing import Optional
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.individual.models import Individual, IndividualClt, IndividualSiape, IndividualBeneficio
+from src.individual.models import (
+    Individual, IndividualClt, IndividualSiape, IndividualBeneficio,
+    IndividualAddress, IndividualPhone, IndividualEmail
+)
 from src.individual.mappers import map_sexo, map_estado_civil, map_situacao_cadastral
 from src.individual.infoqualy.parser_infoqualy import flatten_infoqualy
-from src.individual.builders import build_entities_from_flat
+from src.individual.builders import build_entities_from_flat  # se já cria filhos, mantém
 
-async def upsert_individual_from_infoqualy_async(session: AsyncSession, payload_json: dict) -> Individual:
+async def upsert_individual_from_infoqualy_async(
+    session: AsyncSession,
+    payload_json: dict,
+    *,
+    replace_children: bool = True,   # True = limpa e recria; False = mescla (aqui implementado o "limpa e recria")
+) -> Individual:
     flat = flatten_infoqualy(payload_json)
     if not flat.get("cpf") or not flat.get("nome"):
         raise ValueError("Resposta Infoqualy sem CPF ou NOME.")
 
-    result = await session.execute(select(Individual).where(Individual.cpf == flat["cpf"]))
+    # carrega com relacionamentos para poder limpar/atualizar
+    stmt = (
+        select(Individual)
+        .where(Individual.cpf == flat["cpf"])
+        .options(
+            selectinload(Individual.enderecos),
+            selectinload(Individual.telefones),
+            selectinload(Individual.emails),
+            selectinload(Individual.clt),
+            selectinload(Individual.siape),
+            selectinload(Individual.beneficio),
+        )
+    )
+    result = await session.execute(stmt)
     ind: Optional[Individual] = result.scalar_one_or_none()
 
     if ind is None:
+        # Se seu builder já cria endereços/telefones/emails a partir do flat, ótimo.
+        # Senão, criaremos abaixo (limpeza+append).
         ind = build_entities_from_flat(flat)
         session.add(ind)
+        await session.flush()  # garante ind.id_
     else:
-        # Atualizações (mesmo conteúdo que você já tem na versão sync)
+        # --------- Campos "flat" do Individual ---------
         ind.nome = flat.get("nome") or ind.nome
         ind.idade = flat.get("idade")
         ind.veiculo_qtd = flat.get("veiculo_qtd")
@@ -47,6 +72,7 @@ async def upsert_individual_from_infoqualy_async(session: AsyncSession, payload_
         ind.estado_civil = map_estado_civil(flat.get("estado_civil_raw"))
         ind.situacao_cadastral = map_situacao_cadastral(flat.get("situacao_cadastral_raw"))
 
+        # --------- 1:1 (CLT / SIAPE / Benefício) ---------
         if ind.clt is None:
             ind.clt = IndividualClt()
         ind.clt.clt_qtd_pessoas = flat.get("clt_qtd_pessoas")
@@ -73,6 +99,76 @@ async def upsert_individual_from_infoqualy_async(session: AsyncSession, payload_
         ind.beneficio.beneficio_renda_total = flat.get("beneficio_renda_total")
         ind.beneficio.beneficio_renda_total_valor = flat.get("beneficio_renda_total_valor")
 
+        # --------- N:1 (Endereços / Telefones / Emails) ---------
+        # Estratégia: substituir pelos recebidos (replace_children=True).
+        # Se quiser mesclar/deduplicar, posso te enviar uma variante.
+
+        # Endereços
+        if "enderecos" in flat and replace_children:
+            ind.enderecos.clear()
+            for e in (flat.get("enderecos") or []):
+                ind.enderecos.append(IndividualAddress(
+                    individual_id=ind.id_,
+                    tipo=e.get("tipo"),
+                    titulo=e.get("titulo"),
+                    nome=e.get("nome"),
+                    numero=e.get("numero"),
+                    complemento=e.get("complemento"),
+                    bairro=e.get("bairro"),
+                    cidade=e.get("cidade"),
+                    uf=e.get("uf"),
+                    cep=e.get("cep"),
+                    endereco=e.get("endereco"),
+                ))
+
+        # Telefones
+        if "telefones" in flat and replace_children:
+            ind.telefones.clear()
+            for t in (flat.get("telefones") or []):
+                numero = (t.get("numero") or "").strip()
+                if not numero:
+                    continue
+                ind.telefones.append(IndividualPhone(
+                    individual_id=ind.id_,
+                    tipo=t.get("tipo") or "CELULAR",
+                    numero=numero,
+                    ordem=t.get("ordem"),
+                    whatsapp=t.get("whatsapp"),
+                    procon=t.get("procon"),
+                    blocklist=t.get("blocklist"),
+                    hot=t.get("hot"),
+                ))
+
+        # Emails
+        if "emails" in flat and replace_children:
+            ind.emails.clear()
+            for em in (flat.get("emails") or []):
+                email = (em.get("email") or "").strip()
+                if not email:
+                    continue
+                ind.emails.append(IndividualEmail(
+                    individual_id=ind.id_,
+                    email=email,
+                    prioridade=em.get("prioridade"),
+                ))
+
+    # Persiste
+    await session.flush()
     await session.commit()
-    await session.refresh(ind)
+
+    # Recarrega com selectinload (evita I/O no response)
+    stmt_reload = (
+        select(Individual)
+        .where(Individual.cpf == flat["cpf"])
+        .options(
+            selectinload(Individual.enderecos),
+            selectinload(Individual.telefones),
+            selectinload(Individual.emails),
+            selectinload(Individual.clt),
+            selectinload(Individual.siape),
+            selectinload(Individual.beneficio),
+        )
+    )
+    ind = (await session.execute(stmt_reload)).scalar_one()
+
     return ind

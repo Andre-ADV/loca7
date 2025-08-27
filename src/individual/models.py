@@ -6,8 +6,9 @@ from decimal import Decimal
 from src.database.database import Base
 from src.individual.enums import SexoType, EstadoCivilType, SituacaoCadastralType
 
-from sqlalchemy import Float, Integer, String, Boolean, DateTime, Numeric, func, Enum, text, ForeignKey
+from sqlalchemy import Float, Integer, String, Boolean, DateTime, Numeric, SmallInteger, func, Enum, text, ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
+from typing import List, Optional
 
 
 class Individual(Base):
@@ -45,6 +46,10 @@ class Individual(Base):
     clt:                      Mapped["IndividualClt"]       = relationship(back_populates="individual", uselist=False, cascade="all, delete-orphan")
     siape:                    Mapped["IndividualSiape"]     = relationship(back_populates="individual", uselist=False, cascade="all, delete-orphan")
     beneficio:                Mapped["IndividualBeneficio"] = relationship(back_populates="individual", uselist=False, cascade="all, delete-orphan")
+    
+    enderecos  = relationship("IndividualAddress", back_populates="individual", lazy="selectin", cascade="all, delete-orphan")
+    telefones  = relationship("IndividualPhone",   back_populates="individual", lazy="selectin", cascade="all, delete-orphan")
+    emails     = relationship("IndividualEmail",   back_populates="individual", lazy="selectin", cascade="all, delete-orphan")
     
 class IndividualSiape(Base):
     
@@ -89,3 +94,73 @@ class IndividualBeneficio(Base):
     beneficio_renda_total:       Mapped[float]        = mapped_column(Float, nullable=True)
     beneficio_renda_total_valor: Mapped[Decimal]      = mapped_column(Numeric(12, 2), nullable=True)
     individual:                  Mapped["Individual"] = relationship(back_populates="beneficio", uselist=False)
+    
+    
+# -----------------------------------------
+# Endereços (mapeia RETORNO[2].ENDERECOS[*])
+# -----------------------------------------
+
+class IndividualAddress(Base):
+    __tablename__ = "individual_address"
+
+    id_:             Mapped[int]       = mapped_column("id", Integer, primary_key=True, autoincrement=True)
+    individual_id:   Mapped[int]       = mapped_column(ForeignKey("individual.id"), index=True, nullable=False)
+
+    tipo:       Mapped[Optional[str]] = mapped_column(String(20), nullable=True)      # LOGR_TIPO
+    titulo:     Mapped[Optional[str]] = mapped_column(String(20), nullable=True)      # LOGR_TITULO
+    nome:       Mapped[Optional[str]] = mapped_column(String(120), nullable=True)     # LOGR_NOME
+    numero:     Mapped[Optional[str]] = mapped_column(String(20), nullable=True)      # LOGR_NUMERO
+    complemento:Mapped[Optional[str]] = mapped_column(String(120), nullable=True)     # LOGR_COMPLEMENTO
+    bairro:          Mapped[Optional[str]] = mapped_column(String(120), nullable=True)     # BAIRRO
+    cidade:          Mapped[Optional[str]] = mapped_column(String(120), nullable=True)     # CIDADE
+    uf:              Mapped[Optional[str]] = mapped_column(String(2), nullable=True)       # UF
+    cep:             Mapped[Optional[str]] = mapped_column(String(10), nullable=True)      # CEP (guarde como string)
+    endereco: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)   # ENDERECO_ateCompl
+
+    created_at:      Mapped[datetime]  = mapped_column(DateTime, server_default=func.now())
+    updated_at:      Mapped[datetime]  = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    individual:      Mapped["Individual"] = relationship(back_populates="enderecos", uselist=False)
+
+
+# -----------------------------------------
+# Telefones (mapeia RETORNO[3].CELULAR[*] e RETORNO[4].TELEFONE_FIXO[*])
+# -----------------------------------------
+
+class IndividualPhone(Base):
+    __tablename__ = "individual_phone"
+
+    id_:             Mapped[int]       = mapped_column("id", Integer, primary_key=True, autoincrement=True)
+    individual_id:   Mapped[int]       = mapped_column(ForeignKey("individual.id"), index=True, nullable=False)
+
+    tipo:            Mapped[str]       = mapped_column(String(10), nullable=False)         # 'CELULAR' ou 'FIXO'
+    numero:          Mapped[str]       = mapped_column(String(20), nullable=False)         # CELULAR / TELEFONE
+    ordem:           Mapped[Optional[int]] = mapped_column(Integer, nullable=True)         # OrdemTelefone
+    whatsapp:    Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)    # -1/0/1 (mantém tri-estado)
+    procon:      Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)    # -1/0/1
+    blocklist:   Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)    # -1/0/1
+    hot:             Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)    # 0/1
+
+    created_at:      Mapped[datetime]  = mapped_column(DateTime, server_default=func.now())
+    updated_at:      Mapped[datetime]  = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    individual:      Mapped["Individual"] = relationship(back_populates="telefones", uselist=False)
+
+
+# -----------------------------------------
+# E-mails (mapeia RETORNO[5].EMAIL[*])
+# -----------------------------------------
+
+class IndividualEmail(Base):
+    __tablename__ = "individual_email"
+
+    id_:             Mapped[int]       = mapped_column("id", Integer, primary_key=True, autoincrement=True)
+    individual_id:   Mapped[int]       = mapped_column(ForeignKey("individual.id"), index=True, nullable=False)
+
+    email:           Mapped[str]       = mapped_column(String(255), nullable=False)
+    prioridade:      Mapped[Optional[int]] = mapped_column(Integer, nullable=True)         # PRIORIDADE (se vier)
+
+    created_at:      Mapped[datetime]  = mapped_column(DateTime, server_default=func.now())
+    updated_at:      Mapped[datetime]  = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    individual:      Mapped["Individual"] = relationship(back_populates="emails", uselist=False)

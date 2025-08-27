@@ -19,13 +19,15 @@ class ExternalAPI:
     async def get_token(self) -> str:
         """Gera token (sem cache)."""
         cfg = self.bases['infoqualy']
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.get(
                 cfg["url_token"],
                 headers={"Authorization": f"Bearer {cfg['api_key']}"},
             )
+            
             resp.raise_for_status()
             token = resp.json().get("token")
+            
             if not token:
                 raise RuntimeError("Token ausente na resposta de gerar_token.")
             return token
@@ -44,16 +46,11 @@ class ExternalAPI:
         self._token_exp = 0
     
     async def get_data_individual(self, cpf: str, db: AsyncSession) -> dict | None:
-        """
-        Consulta Infoqualy com CPF, faz parse e faz upsert assíncrono.
-        Retorna o JSON bruto da API.
-        """
         cfg = self.bases['infoqualy']
         token = await self._get_token_cached()
         payload = {"doc": cpf}
 
-        async with httpx.AsyncClient(timeout=60) as client:
-            # 1ª tentativa
+        async with httpx.AsyncClient(timeout=150) as client:
             resp = await client.post(
                 cfg["url_consulta_pf"],
                 headers={
@@ -78,11 +75,11 @@ class ExternalAPI:
 
             resp.raise_for_status()
             data_api = resp.json()
-            print(data_api)
 
         # Validação mínima para decidir se persiste
         flat = flatten_infoqualy(data_api)
         if flat.get("cpf") and flat.get("nome"):
-            await upsert_individual_from_infoqualy_async(db, data_api)
+            ind = await upsert_individual_from_infoqualy_async(db, data_api)
+            print(ind)
 
-        return data_api
+        return flat
